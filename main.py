@@ -1,14 +1,22 @@
-from typing import Optional
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
-from fastapi import FastAPI
+app = FastAPI(title="Personal Connector")
 
-app = FastAPI()
-
+class CreateDocIn(BaseModel):
+    title: str
+    content: str
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def root():
+    return {"message": "OK", "service": "personal-connector"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
+@app.post("/createDocument")
+def create_document(payload: CreateDocIn):
+    if not payload.title.strip():
+        raise HTTPException(status_code=400, detail="title required")
+    return {
+        "status": "received",
+        "title": payload.title,
+        "content_length": len(payload.content)
+    }
