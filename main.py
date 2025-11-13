@@ -2,11 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from fastapi.openapi.utils import get_openapi
 import os
 
 app = FastAPI()
 
-# ✅ Define the request body model so Swagger shows editable fields
+# ✅ Define the request body model
 class DocumentRequest(BaseModel):
     title: str
     content: str
@@ -62,5 +63,13 @@ async def create_document(data: DocumentRequest):
     except Exception as e:
         return {"status": "error", "details": str(e)}
 
-
-
+# ✅ Add custom OpenAPI schema for GPT Actions integration
+@app.get("/openapi.json", include_in_schema=False)
+def custom_openapi():
+    return get_openapi(
+        title="Google Docs API Connector",
+        version="1.0.0",
+        description="API that connects ChatGPT to Google Docs through FastAPI",
+        routes=app.routes,
+        servers=[{"url": "https://fastapi-4n6b.onrender.com"}]
+    )
